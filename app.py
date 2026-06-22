@@ -17,7 +17,7 @@ st.markdown("Análisis detallado de la sesión de natación. Uso exclusivo para 
 @st.cache_data
 def load_data():
     # Lee el archivo que limpiamos en Google Colab
-    df = pd.read_csv("20260622_limpio.csv") 
+    df = pd.read_csv("20260620_limpio.csv") 
     # Filtramos para analizar solo los largos donde estuviste nadando (excluye descansos)
     df_nado = df[df['Estado'] == 'Nado'].copy()
     return df_nado
