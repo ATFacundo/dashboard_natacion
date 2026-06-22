@@ -90,10 +90,19 @@ if not df_filtrado.empty:
         yaxis='y2'
     ))
 
+    # SINTAXIS PLOTLY ACTUALIZADA
     fig_traccion.update_layout(
-        xaxis=dict(title='Distancia Acumulada (Metros)'),
-        yaxis=dict(title='Brazadas - MÁS BAJO ES MEJOR', titlefont=dict(color='rgb(55, 128, 191)'), tickfont=dict(color='rgb(55, 128, 191)')),
-        yaxis2=dict(title='Métrica SWOLF', overlaying='y', side='right', range=[30, 70]),
+        xaxis=dict(title=dict(text='Distancia Acumulada (Metros)')),
+        yaxis=dict(
+            title=dict(text='Brazadas - MÁS BAJO ES MEJOR', font=dict(color='rgb(55, 128, 191)')), 
+            tickfont=dict(color='rgb(55, 128, 191)')
+        ),
+        yaxis2=dict(
+            title=dict(text='Métrica SWOLF'), 
+            overlaying='y', 
+            side='right', 
+            range=[30, 70]
+        ),
         template='plotly_white',
         hovermode='x unified'
     )
@@ -134,10 +143,19 @@ if not df_filtrado.empty:
             marker=dict(size=6)
         ))
 
+        # SINTAXIS PLOTLY ACTUALIZADA
         fig_cardio.update_layout(
-            xaxis=dict(title='Distancia Acumulada (Metros)'),
-            yaxis=dict(title='Ritmo (Segundos) - MÁS BAJO ES MEJOR', titlefont=dict(color='firebrick'), tickfont=dict(color='firebrick')),
-            yaxis2=dict(title='Pulsaciones (PPM)', titlefont=dict(color='blue'), tickfont=dict(color='blue'), overlaying='y', side='right'),
+            xaxis=dict(title=dict(text='Distancia Acumulada (Metros)')),
+            yaxis=dict(
+                title=dict(text='Ritmo (Segundos) - MÁS BAJO ES MEJOR', font=dict(color='firebrick')), 
+                tickfont=dict(color='firebrick')
+            ),
+            yaxis2=dict(
+                title=dict(text='Pulsaciones (PPM)', font=dict(color='blue')), 
+                tickfont=dict(color='blue'), 
+                overlaying='y', 
+                side='right'
+            ),
             template='plotly_white',
             hovermode='x unified'
         )
@@ -163,10 +181,11 @@ if not df_filtrado.empty:
                               text='SWOLF', barmode='group',
                               template='plotly_white', color_discrete_map={'butterfly': 'firebrick', 'freestyle': 'rgb(55, 128, 191)'})
         
+        # SINTAXIS PLOTLY ACTUALIZADA
         fig_comp_comb.update_layout(
-            xaxis=dict(title='Distancia Acumulada del Sprint'),
-            yaxis=dict(title='Segundos por Pasada (25m)'),
-            legend=dict(title='Estilo', orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+            xaxis=dict(title=dict(text='Distancia Acumulada del Sprint')),
+            yaxis=dict(title=dict(text='Segundos por Pasada (25m)')),
+            legend=dict(title=dict(text='Estilo'), orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
         )
         st.plotly_chart(fig_comp_comb, use_container_width=True)
     else:
