@@ -90,3 +90,57 @@ if not df_filtrado.empty:
     # ==========================================
     # 🦋 GRÁFICO 3: MICROSCOPIO - MARIPOSA
     # ==========================================
+    st.subheader("🦋 Análisis de Declinación Técnica (Fase de Potencia)")
+    st.markdown("*Aislamiento de los sprints de mariposa para cruzar Velocidad vs. Agarre (Brazadas).*")
+
+    # Aislamos específicamente la mariposa dentro del bloque seleccionado
+    df_combinado = df_filtrado[df_filtrado['Bloque_Rutina'].str.contains('Combinados', case=False, na=False)]
+    df_mariposa = df_combinado[df_combinado['Estilo'] == 'butterfly'].reset_index(drop=True)
+
+    if not df_mariposa.empty:
+        fig_fly = go.Figure()
+
+        # Frente (Línea): Velocidad en Segundos
+        fig_fly.add_trace(go.Scatter(
+            x=df_mariposa.index + 1, 
+            y=df_mariposa['Duracion_Seg'],
+            mode='lines+markers',
+            name='Tiempo (Segundos)',
+            line=dict(color='firebrick', width=3),
+            marker=dict(size=10)
+        ))
+
+        # Fondo (Barras): Cantidad de Brazadas
+        fig_fly.add_trace(go.Bar(
+            x=df_mariposa.index + 1, 
+            y=df_mariposa['Brazadas'],
+            name='Brazadas',
+            marker_color='rgba(55, 128, 191, 0.4)',
+            yaxis='y2'
+        ))
+
+        # Configuración del doble eje Y
+        fig_fly.update_layout(
+            xaxis=dict(title='Número de Pasada (Sprint de 25m)', tickmode='linear'),
+            yaxis=dict(
+                title='Tiempo (seg) - MÁS ALTO ES PEOR', 
+                titlefont=dict(color='firebrick'), 
+                tickfont=dict(color='firebrick')
+            ),
+            yaxis2=dict(
+                title='Cant. Brazadas - MÁS ALTO ES PEOR', 
+                titlefont=dict(color='blue'), 
+                tickfont=dict(color='blue'),
+                overlaying='y', 
+                side='right'
+            ),
+            template='plotly_white',
+            hovermode='x unified'
+        )
+
+        st.plotly_chart(fig_fly, use_container_width=True)
+    else:
+        st.info("💡 Para ver el análisis de declinación de Mariposa, asegurate de tener seleccionado el bloque 'Combinados' en el panel lateral.")
+
+else:
+    st.warning("⚠️ No hay datos para mostrar. Por favor, seleccioná al menos un bloque en el panel lateral.")
