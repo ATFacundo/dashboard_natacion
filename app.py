@@ -4,28 +4,28 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # ==========================================
-# ⚙️ CONFIGURACIÓN DE PÁGINA
+# ⚙️ CONFIGURACIÓN DE PÁGINA (Alto Rendimiento)
 # ==========================================
-st.set_page_config(page_title="Dashboard Natación", layout="wide", page_icon="🏊‍♂️")
+st.set_page_config(page_title="Revisión Técnica - Natación", layout="wide", page_icon="🏊‍♂️")
 
 st.title("🏊‍♂️ Panel de Rendimiento y Biomecánica")
 st.markdown("Análisis detallado de la sesión de natación. Uso exclusivo para revisión técnica.")
 
 # ==========================================
-# 📥 CARGA DE DATOS (Backend)
+# 📥 CARGA DE DATOS (Backend Blindado)
 # ==========================================
 @st.cache_data
 def load_data():
-    # Lee el archivo que limpiamos en Google Colab
+    # Asegurate de que este nombre coincida con el CSV que subiste
     df = pd.read_csv("20260620_limpio.csv") 
-    # Filtramos para analizar solo los largos donde estuviste nadando (excluye descansos)
+    # Analizamos solo los largos donde estuviste nadando (excluye descansos)
     df_nado = df[df['Estado'] == 'Nado'].copy()
     return df_nado
 
 df = load_data()
 
 # ==========================================
-# 🎛️ PANEL LATERAL (Filtros)
+# 🎛️ PANEL LATERAL (Filtros Tácticos)
 # ==========================================
 st.sidebar.header("Filtros de Análisis")
 bloques_disponibles = df['Bloque_Rutina'].unique()
@@ -62,85 +62,115 @@ st.divider()
 if not df_filtrado.empty:
     
     # ==========================================
-    # 📈 GRÁFICO 1: MAPA DE FATIGA (SWOLF)
+    # NIVEL 1: 📈 MAPA DE EFICIENCIA MECÁNICA (ECONOMÍA DE NADO)
     # ==========================================
-    st.subheader("📈 Mapa de Fatiga Global (SWOLF vs Distancia)")
-    st.markdown("*Mide la pérdida de eficiencia. Si la curva sube, estás requiriendo más esfuerzo para avanzar lo mismo.*")
+    st.subheader("📈 Mapa de Eficiencia Mecánica (Brazadas vs Distancia)")
+    st.markdown("*Mide la tracción. Si la línea sube progresivamente, estás perdiendo 'agarre' en el agua y patinando.*")
     
-    fig_swolf = px.line(df_filtrado, x='Distancia_Acumulada', y='SWOLF', markers=True, 
-                        color='Bloque_Rutina', template="plotly_white")
-    fig_swolf.update_traces(line=dict(width=3), marker=dict(size=6))
-    fig_swolf.update_xaxes(title="Distancia Acumulada (Metros)")
-    st.plotly_chart(fig_swolf, use_container_width=True)
+    fig_traccion = go.Figure()
 
-    # ==========================================
-    # ⏱️ GRÁFICO 2: ESTABILIDAD DE RITMO
-    # ==========================================
-    st.subheader("⏱️ Estabilidad de Ritmo por Bloque")
-    st.markdown("*Las 'cajas' estiradas hacia arriba indican que te costó mantener el paso y fuiste irregular.*")
-    
-    fig_ritmo = px.box(df_filtrado, x='Bloque_Rutina', y='Duracion_Seg', 
-                       color='Bloque_Rutina', template="plotly_white")
-    fig_ritmo.update_yaxes(title="Tiempo por largo (Segundos)")
-    fig_ritmo.update_xaxes(title="")
-    st.plotly_chart(fig_ritmo, use_container_width=True)
+    # Línea principal: Brazadas
+    fig_traccion.add_trace(go.Scatter(
+        x=df_filtrado['Distancia_Acumulada'], 
+        y=df_filtrado['Brazadas'],
+        mode='lines+markers',
+        name='Brazadas x 25m',
+        line=dict(color='rgb(55, 128, 191)', width=3),
+        marker=dict(size=6)
+    ))
+
+    # Área de fondo para el SWOLF (tendencia global)
+    fig_traccion.add_trace(go.Scatter(
+        x=df_filtrado['Distancia_Acumulada'], 
+        y=df_filtrado['SWOLF'],
+        fill='tozeroy',
+        mode='none', 
+        name='SWOLF',
+        fillcolor='rgba(230, 230, 230, 0.5)',
+        yaxis='y2'
+    ))
+
+    fig_traccion.update_layout(
+        xaxis=dict(title='Distancia Acumulada (Metros)'),
+        yaxis=dict(title='Brazadas - MÁS BAJO ES MEJOR', titlefont=dict(color='rgb(55, 128, 191)'), tickfont=dict(color='rgb(55, 128, 191)')),
+        yaxis2=dict(title='Métrica SWOLF', overlaying='y', side='right', range=[30, 70]),
+        template='plotly_white',
+        hovermode='x unified'
+    )
+    st.plotly_chart(fig_traccion, use_container_width=True)
 
     st.divider()
 
     # ==========================================
-    # 🦋 GRÁFICO 3: MICROSCOPIO - MARIPOSA
+    # NIVEL 2: ❤️ REVISIÓN FISIOLÓGICA (DESACOPLE AERÓBICO)
     # ==========================================
-    st.subheader("🦋 Análisis de Declinación Técnica (Fase de Potencia)")
-    st.markdown("*Aislamiento de los sprints de mariposa para cruzar Velocidad vs. Agarre (Brazadas).*")
+    st.subheader("❤️ Desacople Aeróbico (Ritmo vs Frecuencia Cardíaca)")
+    st.markdown("*Detector de fatiga por pre-fatiga. Si el Corazón (Área Azul) sube y el Ritmo (Línea Roja) empeora, tu motor cardiovascular colapsó.*")
 
-    # Aislamos específicamente la mariposa dentro del bloque seleccionado
-    df_combinado = df_filtrado[df_filtrado['Bloque_Rutina'].str.contains('Combinados', case=False, na=False)]
-    df_mariposa = df_combinado[df_combinado['Estilo'] == 'butterfly'].reset_index(drop=True)
+    # Filtramos nulos por si el reloj perdió señal
+    df_cardio = df_filtrado.dropna(subset=['PPM', 'Duracion_Seg'])
 
-    if not df_mariposa.empty:
-        fig_fly = go.Figure()
+    if not df_cardio.empty:
+        fig_cardio = go.Figure()
 
-        # Frente (Línea): Velocidad en Segundos
-        fig_fly.add_trace(go.Scatter(
-            x=df_mariposa.index + 1, 
-            y=df_mariposa['Duracion_Seg'],
-            mode='lines+markers',
-            name='Tiempo (Segundos)',
-            line=dict(color='firebrick', width=3),
-            marker=dict(size=10)
-        ))
-
-        # Fondo (Barras): Cantidad de Brazadas
-        fig_fly.add_trace(go.Bar(
-            x=df_mariposa.index + 1, 
-            y=df_mariposa['Brazadas'],
-            name='Brazadas',
-            marker_color='rgba(55, 128, 191, 0.4)',
+        # Fondo (Área azul): Pulsaciones (PPM)
+        fig_cardio.add_trace(go.Scatter(
+            x=df_cardio['Distancia_Acumulada'], 
+            y=df_cardio['PPM'],
+            fill='tozeroy',
+            mode='none',
+            name='Corazón (PPM)',
+            fillcolor='rgba(55, 128, 191, 0.2)',
             yaxis='y2'
         ))
 
-        # Configuración del doble eje Y
-        fig_fly.update_layout(
-            xaxis=dict(title='Número de Pasada (Sprint de 25m)', tickmode='linear'),
-            yaxis=dict(
-                title='Tiempo (seg) - MÁS ALTO ES PEOR', 
-                titlefont=dict(color='firebrick'), 
-                tickfont=dict(color='firebrick')
-            ),
-            yaxis2=dict(
-                title='Cant. Brazadas - MÁS ALTO ES PEOR', 
-                titlefont=dict(color='blue'), 
-                tickfont=dict(color='blue'),
-                overlaying='y', 
-                side='right'
-            ),
+        # Frente (Línea roja gruesa): Tiempo por largo (Ritmo)
+        fig_cardio.add_trace(go.Scatter(
+            x=df_cardio['Distancia_Acumulada'], 
+            y=df_cardio['Duracion_Seg'],
+            mode='lines+markers',
+            name='Tiempo x 25m (Seg)',
+            line=dict(color='firebrick', width=3),
+            marker=dict(size=6)
+        ))
+
+        fig_cardio.update_layout(
+            xaxis=dict(title='Distancia Acumulada (Metros)'),
+            yaxis=dict(title='Ritmo (Segundos) - MÁS BAJO ES MEJOR', titlefont=dict(color='firebrick'), tickfont=dict(color='firebrick')),
+            yaxis2=dict(title='Pulsaciones (PPM)', titlefont=dict(color='blue'), tickfont=dict(color='blue'), overlaying='y', side='right'),
             template='plotly_white',
             hovermode='x unified'
         )
 
-        st.plotly_chart(fig_fly, use_container_width=True)
+        st.plotly_chart(fig_cardio, use_container_width=True)
     else:
-        st.info("💡 Para ver el análisis de declinación de Mariposa, asegurate de tener seleccionado el bloque 'Combinados' en el panel lateral.")
+        st.info("No hay datos de Frecuencia Cardíaca disponibles en esta selección.")
+
+    st.divider()
+
+    # ==========================================
+    # NIVEL 3: 🦋 MICROSCOPIO BIOMECÁNICO - BLOQUE COMBINADO
+    # ==========================================
+    st.subheader("🦋 Análisis de Tolerancia a Lactato (Combinados Mariposa/Crol)")
+    st.markdown("*Aislamiento de los sprints de 25m. Buscamos consistencia en segundos y brazadas entre la pasada 1 y la 8.*")
+
+    # Aislamos específicamente la mariposa dentro del bloque seleccionado
+    df_combinado = df_filtrado[df_filtrado['Bloque_Rutina'].str.contains('Combinados', case=False, na=False)]
+    
+    if not df_combinado.empty:
+        # Gráfico comparativo de Tiempo y SWOLF por estilo
+        fig_comp_comb = px.bar(df_combinado, x='Distancia_Acumulada', y='Duracion_Seg', color='Estilo',
+                              text='SWOLF', barmode='group',
+                              template='plotly_white', color_discrete_map={'butterfly': 'firebrick', 'freestyle': 'rgb(55, 128, 191)'})
+        
+        fig_comp_comb.update_layout(
+            xaxis=dict(title='Distancia Acumulada del Sprint'),
+            yaxis=dict(title='Segundos por Pasada (25m)'),
+            legend=dict(title='Estilo', orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+        )
+        st.plotly_chart(fig_comp_comb, use_container_width=True)
+    else:
+        st.info("💡 Para ver este análisis biomecánico, asegurate de tener seleccionado el bloque 'Combinados' en el panel lateral.")
 
 else:
     st.warning("⚠️ No hay datos para mostrar. Por favor, seleccioná al menos un bloque en el panel lateral.")
